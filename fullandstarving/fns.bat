@@ -1,0 +1,1 @@
+parse-dashboard --appId fullandstarving651635156cjkbwjfhkbajkhbfjha --masterKey agjhanilfheaiuhvjkaicn2i33iyr --serverURL http://fullandstarving651635156.herokuapp.com/parse --appName FullandStarving

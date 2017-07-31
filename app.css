@@ -1,0 +1,17 @@
+h1 {
+	color: #ff0000;
+	border-color: purple;
+	border-width: 5px;
+	border-style: solid;
+}
+
+h4 {
+	background: rgb(255,100,80);
+}
+
+body {
+	/*background: url(http://wallpapercave.com/wp/Tb3g7Fv.jpg);
+	background-repeat: no-repeat;*/
+
+	background: pink;
+}
