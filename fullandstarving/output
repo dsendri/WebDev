@@ -1,0 +1,4 @@
+#!/bin/bash#!/bin/bash
+export PATH=mongodb/bin:$PATH
+
+mongoexport -h ds127783.mlab.com:27783 -d heroku_64xrkmkt -c ContactList -u heroku_64xrkmkt -p pocsbgugjmrns790hvvnsc7s5c -o ContactList.csv --csv -f id,email,name,cityClient,facebook
