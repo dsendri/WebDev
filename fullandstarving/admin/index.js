@@ -6,6 +6,8 @@ var nameClient = document.getElementById("nameClient");
 var cityClient = document.querySelector("#cityClient");
 var facebookClient = document.querySelector("#facebookClient");
 var dropDownButton = document.querySelector("#cityDropDown");
+var exportButton = document.querySelector("#export");
+var data;
 
 init();
 
@@ -27,6 +29,61 @@ function setupButtonListener(){
 	submitButton.addEventListener("click",function(){
 
 		checkForExistingContact()
+
+	})
+
+	exportButton.addEventListener("click",function(){
+
+		data = [["email", "name", "cityClient","facebook"]];
+
+		var query = new Parse.Query("ContactList");
+		query.find({
+			success: function(results){
+				//alert("Successfully retrieved " + results.length + " records.");
+
+				results.length
+
+				if (results.length > 0){
+					
+					for (var i = 0; i < results.length; i++){
+
+						var temp = [];
+						console.log(temp.push(results[i].get("email")));
+						console.log(temp.push(results[i].get("name")));
+						console.log(temp.push(results[i].get("cityClient")));
+						console.log(temp.push(results[i].get("facebook")));
+						temp
+
+						data.push(temp);
+
+					}
+				
+				}
+
+				var csvContent = "data:text/csv;charset=utf-8,";
+				data.forEach(function(infoArray, index){
+
+				   dataString = infoArray.join(",");
+				   csvContent += index < data.length ? dataString+ "\n" : dataString;
+
+				}); 
+
+				var encodedUri = encodeURI(csvContent);
+				var link = document.createElement("a");
+				link.setAttribute("href", encodedUri);
+				link.setAttribute("download", "contactlist.csv");
+				document.body.appendChild(link); // Required for FF
+
+				link.click(); // This will download the data file named "my_data.csv".
+					},
+					error: function(error) {
+						alert("Error: " + error.code + " " + error.message);
+						return true;
+					}
+				});
+
+
+		
 
 	})
 
