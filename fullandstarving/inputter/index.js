@@ -7,9 +7,12 @@ var cityClient = document.querySelector("#cityClient");
 var facebookClient = document.querySelector("#facebookClient");
 var dropDownButton = document.querySelector("#cityDropDown");
 var exportButton = document.querySelector("#export");
-var data;
+var data = [
+  ["email", "name", "cityClient", "facebook"]
+];
 var dataImport;
-var querylimit = 1000;
+var querylimit = 100;
+var skipNumber = 0;
 
 init();
 
@@ -22,7 +25,7 @@ function init() {
 
   setupButtonListener();
 
-
+  skipNumber = 0;
   listCity();
 }
 
@@ -93,13 +96,12 @@ function checkForExistingContact() {
 	  });
 	} else {
 
-		if (emailClient.value.toLowerCase() === "" && nameClient.value === "" && cityClient.value.toLowerCase() === "" && facebookClient.value === "")
-			alert("No data is filled, Upload is cancelled");
-		else {
-			uploadData();
-			alert("Uploading data");
-		}
-		
+			if (emailClient.value.toLowerCase() === "" && nameClient.value === "" && cityClient.value.toLowerCase() === "" && facebookClient.value === "")
+				alert("No data is filled, Upload is cancelled");
+			else {
+				uploadData();
+				alert("Uploading data");
+			}
 	}
 
 
@@ -109,6 +111,7 @@ function listCity() {
 
   var query = new Parse.Query("ContactList");
 	query.limit(querylimit);
+  query.skip(skipNumber*querylimit);
   query.find({
     success: function(results) {
       //alert("Successfully retrieved " + results.length + " records.");
@@ -118,25 +121,31 @@ function listCity() {
         for (var i = 0; i < results.length; i++) {
 
           cityList.push(results[i].get("cityClient").toLowerCase());
-          console.log(results[i].get("cityClient"));
+          //console.log(results[i].get("cityClient"));
 
         }
 
-        var sortedCity = cityList.slice().sort();
+        if (results.length === 100) {
+            console.log("recall");
+            skipNumber++;
+            listCity();
+        } else {
+          var sortedCity = cityList.slice().sort();
 
-        console.log(sortedCity);
+          //console.log(sortedCity);
 
-        var sortedCityTrun = [];
-        for (var i = 0; i < cityList.length; i++) {
-          if (sortedCity[i + 1] != sortedCity[i]) {
-            sortedCityTrun.push(sortedCity[i]);
-            add(sortedCity[i]);
+          var sortedCityTrun = [];
+          for (var i = 0; i < cityList.length; i++) {
+            if (sortedCity[i + 1] != sortedCity[i]) {
+              sortedCityTrun.push(sortedCity[i]);
+              add(sortedCity[i]);
+            }
           }
+
+          console.log(sortedCityTrun);
         }
-
-        console.log(sortedCityTrun);
-
       }
+
     },
     error: function(error) {
       alert("Error: " + error.code + " " + error.message);
