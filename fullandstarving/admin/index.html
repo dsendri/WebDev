@@ -28,6 +28,18 @@
         <a class="navbar-brand" href="#">Full and Starving</a>
       </div>
 
+      <div class="navbar-form navbar-right">
+        <div class="form-group form-inline">
+          <input type="text" class="form-control" placeholder="username" id="nickname">
+        </div>
+        <div class="form-group form-inline">
+          <input type="password" class="form-control" placeholder="password" id="pass">
+        </div>
+        <div class="form-group form-inline">
+          <button class="btn btn-default" id="loginButton">Login</button>
+        </div>
+      </div>
+
     </div>
     <!-- /.container-fluid -->
   </nav>
@@ -66,7 +78,21 @@
             <button id="submitToParse" class="btn btn-default btn-lg"><i class="fa fa-check" aria-hidden="true"></i> Submit</button>
             <label class="btn btn-default btn-file btn-lg">
 								Import <input type="file" style="display: none" name="fileUpload" id="csvFileUpload" accept=".csv">
-							</label>
+						</label>
+          </div>
+
+          <div class="row progressRow">
+            <div class="col-md-3">
+              <div id="progressTitle">
+                UPLOAD PROGRESS:
+              </div>
+            </div>
+
+            <div class="col-md-9">
+              <div id="myProgress">
+                <div id="myBar"></div>
+              </div>
+            </div>
           </div>
 
           <div class="form-group form-inline">

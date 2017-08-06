@@ -7,6 +7,9 @@ var cityClient = document.querySelector("#cityClient");
 var facebookClient = document.querySelector("#facebookClient");
 var dropDownButton = document.querySelector("#cityDropDown");
 var exportButton = document.querySelector("#export");
+var usernameField = document.querySelector("#nickname");
+var passwordField = document.querySelector("#pass");
+var loginButton = document.querySelector("#loginButton");
 var cityChosenForExport = document.querySelector("#cityDropDownExport");
 var data = [
   ["email", "name", "cityClient", "facebook"]
@@ -17,11 +20,46 @@ var skipNumber = 0;
 
 init();
 
+// function to setup login listener
+function loggingIn() {
+
+  if (Parse.User.current()) {
+    loginButton.innerText = "Logout";
+  } else {
+    loginButton.innerText = "Login";
+  }
+
+  loginButton.addEventListener("click", function() {
+
+    if (loginButton.innerText === "Login") {
+      Parse.User.logIn(usernameField.value, passwordField.value, {
+        success: function(user) {
+          // Do stuff after successful login.
+          alert("Login successful");
+          location.reload();
+        },
+        error: function(user, error) {
+          // The login failed. Check error to see why.
+          alert("Login Failed, you can not export and import data");
+        }
+      });
+    } else if (loginButton.innerText === "Logout") {
+      Parse.User.logOut();
+      alert("Logut successful");
+      location.reload();
+    }
+
+
+  })
+}
+
 // Init function to start all of the listener and start up code
 function init() {
 
+  alert("Please wait until the data has been updated")
   Parse.initialize("fullandstarving651635156cjkbwjfhkbajkhbfjha");
   Parse.serverURL = 'http://fullandstarving651635156.herokuapp.com/parse';
+  loggingIn();
   ContactList = Parse.Object.extend("ContactList");
   setupButtonListener();
   skipNumber = 0;
@@ -107,10 +145,21 @@ function setupButtonListener() {
     checkForExistingContact()
   })
 
+
   // Add listener to export data to csv
   exportButton.addEventListener("click", function() {
-    skipNumber = 0;
-    exportFunc();
+
+    // Check if user has logged in
+    if (Parse.User.current()) {
+      alert("Exporting is in progress, Click OK and please wait until the download window appears")
+      skipNumber = 0;
+      data = [
+        ["email", "name", "cityClient", "facebook"]
+      ];
+      exportFunc();
+    } else {
+      alert("You should login before exporting data");
+    }
   });
 
 }
@@ -226,6 +275,7 @@ function listCity() {
           }
 
           console.log(sortedCityTrun);
+          alert("Data has been updated to the latest version")
         }
       }
 
@@ -267,27 +317,39 @@ $(document).ready(function() {
 
   // Method that reads and processes the selected file
   function upload(evt) {
-    if (!browserSupportFileUpload()) {
-      alert('The File APIs are not fully supported in this browser!');
+
+    // Check if user has logged in
+    if (Parse.User.current()) {
+
+      if (!browserSupportFileUpload()) {
+        alert('The File APIs are not fully supported in this browser!');
+      } else {
+        dataImport = null;
+        var file = evt.target.files[0];
+        var reader = new FileReader();
+        reader.readAsText(file);
+        reader.onload = function(event) {
+          var csvData = event.target.result;
+          dataImport = $.csv.toArrays(csvData);
+          if (dataImport && dataImport.length > 0) {
+            alert('Imported -' + dataImport.length + '- rows successfully! - Wait for next pop up window!');
+            pushDataToHeroku(dataImport);
+          } else {
+            alert('No data to import!');
+          }
+        };
+        reader.onerror = function() {
+          alert('Unable to read ' + file.fileName);
+        };
+      }
+
     } else {
-      dataImport = null;
-      var file = evt.target.files[0];
-      var reader = new FileReader();
-      reader.readAsText(file);
-      reader.onload = function(event) {
-        var csvData = event.target.result;
-        dataImport = $.csv.toArrays(csvData);
-        if (dataImport && dataImport.length > 0) {
-          alert('Imported -' + dataImport.length + '- rows successfully! - Wait for next pop up window!');
-          pushDataToHeroku(dataImport);
-        } else {
-          alert('No data to import!');
-        }
-      };
-      reader.onerror = function() {
-        alert('Unable to read ' + file.fileName);
-      };
+
+      alert("You should login before importing data");
+
     }
+
+
   }
 
   // Import data to server bulk .csv data
@@ -316,6 +378,10 @@ $(document).ready(function() {
             console.log(countCheck);
             console.log(tempData.length - 1);
 
+            var tempDataLength = tempData.length - 1;
+
+            progressBarUpdate(countCheck, tempDataLength);
+
             var unUploadedRows = tempData.length - 1 - countCheck;
 
             if (countCheck === (tempData.length - 1)) {
@@ -337,3 +403,10 @@ $(document).ready(function() {
   }
 
 });
+
+// Update progress Bar
+function progressBarUpdate(progress, length) {
+  var elem = document.getElementById("myBar");
+  elem.style.width = (progress / length) * 100 + "%";
+  elem.innerHTML = progress + "/" + length;
+}

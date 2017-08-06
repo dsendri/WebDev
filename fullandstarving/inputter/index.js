@@ -18,6 +18,7 @@ init();
 // Init function to start all of the listener and start up code
 function init() {
 
+  alert("Please wait until the data has been updated")
   Parse.initialize("fullandstarving651635156cjkbwjfhkbajkhbfjha");
   Parse.serverURL = 'http://fullandstarving651635156.herokuapp.com/parse';
   ContactList = Parse.Object.extend("ContactList");
@@ -146,7 +147,7 @@ function listCity() {
               add(sortedCity[i]);
             }
           }
-
+          alert("Data has been updated to the latest version")
           console.log(sortedCityTrun);
         }
       }
