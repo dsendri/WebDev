@@ -1,4 +1,5 @@
 var ContactList;
+var CitiesList;
 var cityList = [];
 var submitButton = document.querySelector("#submitToParse");
 var emailClient = document.querySelector("#emailClient");
@@ -15,7 +16,7 @@ var data = [
   ["email", "name", "cityClient", "facebook"]
 ];
 var dataImport;
-var querylimit = 100;
+var querylimit = 1000;
 var skipNumber = 0;
 
 init();
@@ -56,11 +57,11 @@ function loggingIn() {
 // Init function to start all of the listener and start up code
 function init() {
 
-  alert("Please wait until the data has been updated")
   Parse.initialize("fullandstarving651635156cjkbwjfhkbajkhbfjha");
   Parse.serverURL = 'http://fullandstarving651635156.herokuapp.com/parse';
   loggingIn();
   ContactList = Parse.Object.extend("ContactList");
+  CitiesList = Parse.Object.extend("CitiesList");
   setupButtonListener();
   skipNumber = 0;
   listCity();
@@ -98,8 +99,8 @@ function exportFunc() {
 
         }
 
-        if (results.length === 100) {
-
+        if (results.length === querylimit) {
+          console.log("recall");
           // increment skip number for pagination
           skipNumber++;
 
@@ -108,15 +109,24 @@ function exportFunc() {
 
         } else {
 
+            const csvString = Papa.unparse(data); // unparse generates CSV from your Object
+            const a = document.createElement('a');  // create a simple link to a resource where your payload is your encoded CSV
+            a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csvString)}`;
+            a.download = 'contactlist.csv'; // or whatever you wanna call it
+            a.click();
+
+/*
+          //console.log("Producing");
           // after all of the rows are read, prepare csv file for export
           var csvContent = "data:text/csv;charset=utf-8,";
           data.forEach(function(infoArray, index) {
-
-            dataString = infoArray.join(",");
-            csvContent += index < data.length ? dataString + "\n" : dataString;
+            //console.log("Producing");
+            dataString = infoArray.join("\",\"");
+            csvContent += index < data.length ? "\"" + dataString + "\" \n" : "\"" + dataString;
 
           });
 
+          console.log("Finishing");
           var encodedUri = encodeURI(csvContent);
           var link = document.createElement("a");
           link.setAttribute("href", encodedUri);
@@ -124,7 +134,7 @@ function exportFunc() {
           document.body.appendChild(link); // Required for FF
 
           link.click(); // This will download the data file named "my_data.csv".
-
+*/
         }
 
       }
@@ -175,6 +185,8 @@ function uploadData() {
   if (dropDownButton.value === "Add city") {
 
     contactList.set("cityClient", cityClient.value.toLowerCase());
+    var citiesList = new CitiesList();
+    citiesList.set("city", cityClient.value.toLowerCase());
 
   } else {
 
@@ -187,6 +199,40 @@ function uploadData() {
     success: function(contactList) {
       // Execute any logic that should take place after the object is saved.
       alert('New object created with objectId: ' + contactList.id);
+
+      if (dropDownButton.value === "Add city") {
+
+        var query = new Parse.Query("CitiesList");
+        query.equalTo("city", cityClient.value.toLowerCase());
+        query.find({
+          success: function(results) {
+            //alert("Successfully retrieved " + results.length + " records.");
+            if (results.length > 0) {
+              alert("The city has been registered");
+            } else {
+              alert("Uploading city data");
+              citiesList.save(null, {
+                success: function(citiesList) {
+                  // Execute any logic that should take place after the object is saved.
+                  location.reload();
+                },
+                error: function(citiesList, error) {
+                  // Execute any logic that should take place if the save fails.
+                  // error is a Parse.Error with an error code and message.
+                  alert('Failed to create new city, with error code: ' + error.message);
+                }
+              });
+            }
+
+          },
+          error: function(error) {
+            alert("Error: " + error.code + " " + error.message);
+            return true;
+          }
+        });
+      } else {
+        location.reload();
+      }
     },
     error: function(contactList, error) {
       // Execute any logic that should take place if the save fails.
@@ -241,6 +287,29 @@ function checkForExistingContact() {
 // List cities that have been uploaded to server
 function listCity() {
 
+  console.log("listing city");
+  var query = new Parse.Query("CitiesList");
+  query.find({
+    success: function(results) {
+
+      if (results.length >= 0) {
+
+        for (var i = 0; i < results.length; i++) {
+
+          console.log(results[i].get("city").toLowerCase());
+          add(results[i].get("city").toLowerCase());
+
+        }
+      }
+
+    },
+    error: function(error) {
+      alert("Error: " + error.code + " " + error.message);
+      return true;
+    }
+  });
+
+/*
   var query = new Parse.Query("ContactList");
   query.limit(querylimit);
   query.skip(skipNumber * querylimit);
@@ -257,7 +326,7 @@ function listCity() {
 
         }
 
-        if (results.length === 100) {
+        if (results.length === querylimit) {
           console.log("recall");
           skipNumber++;
           listCity();
@@ -284,7 +353,7 @@ function listCity() {
       alert("Error: " + error.code + " " + error.message);
       return true;
     }
-  });
+  });*/
 
 }
 
@@ -398,6 +467,41 @@ $(document).ready(function() {
           }
         });
       }
+    } else if (tempData[0][1].toLowerCase() === "city") {
+        console.log("uploading city");
+
+        for (var i = 1; i < tempData.length; i++){
+          var citiesListUpload = new CitiesList();
+          citiesListUpload.set("city",tempData[i][1].toLowerCase());
+
+          citiesListUpload.save(null, {
+            success: function(citiesListUpload) {
+              countCheck++;
+
+              console.log(countCheck);
+              console.log(tempData.length - 1);
+
+              var tempDataLength = tempData.length - 1;
+
+              progressBarUpdate(countCheck, tempDataLength);
+
+              var unUploadedRows = tempData.length - 1 - countCheck;
+
+              if (countCheck === (tempData.length - 1)) {
+
+                alert("Successfully uploaded: " + parseInt(countCheck) + " rows");
+
+              }
+
+            },
+            error: function(citiesListUpload, error) {
+              // Execute any logic that should take place if the save fails.
+              // error is a Parse.Error with an error code and message.
+              alert('Failed to create new object, with error code: ' + error.message);
+            }
+          });
+        }
+
     }
 
   }

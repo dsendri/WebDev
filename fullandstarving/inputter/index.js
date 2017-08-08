@@ -1,4 +1,5 @@
 var ContactList;
+var CitiesList;
 var cityList = [];
 var submitButton = document.querySelector("#submitToParse");
 var emailClient = document.querySelector("#emailClient");
@@ -10,7 +11,7 @@ var data = [
   ["email", "name", "cityClient", "facebook"]
 ];
 var dataImport;
-var querylimit = 100;
+var querylimit = 1000;
 var skipNumber = 0;
 
 init();
@@ -18,10 +19,10 @@ init();
 // Init function to start all of the listener and start up code
 function init() {
 
-  alert("Please wait until the data has been updated")
   Parse.initialize("fullandstarving651635156cjkbwjfhkbajkhbfjha");
   Parse.serverURL = 'http://fullandstarving651635156.herokuapp.com/parse';
   ContactList = Parse.Object.extend("ContactList");
+  CitiesList = Parse.Object.extend("CitiesList");
   setupButtonListener();
   skipNumber = 0;
   listCity();
@@ -49,6 +50,8 @@ function uploadData() {
   if (dropDownButton.value === "Add city") {
 
     contactList.set("cityClient", cityClient.value.toLowerCase());
+    var citiesList = new CitiesList();
+    citiesList.set("city", cityClient.value.toLowerCase());
 
   } else {
 
@@ -61,6 +64,40 @@ function uploadData() {
     success: function(contactList) {
       // Execute any logic that should take place after the object is saved.
       alert('New object created with objectId: ' + contactList.id);
+
+      if (dropDownButton.value === "Add city") {
+
+        var query = new Parse.Query("CitiesList");
+        query.equalTo("city", cityClient.value.toLowerCase());
+        query.find({
+          success: function(results) {
+            //alert("Successfully retrieved " + results.length + " records.");
+            if (results.length > 0) {
+              alert("The city has been registered");
+            } else {
+              alert("Uploading city data");
+              citiesList.save(null, {
+                success: function(citiesList) {
+                  // Execute any logic that should take place after the object is saved.
+                  location.reload();
+                },
+                error: function(citiesList, error) {
+                  // Execute any logic that should take place if the save fails.
+                  // error is a Parse.Error with an error code and message.
+                  alert('Failed to create new city, with error code: ' + error.message);
+                }
+              });
+            }
+
+          },
+          error: function(error) {
+            alert("Error: " + error.code + " " + error.message);
+            return true;
+          }
+        });
+      } else {
+        location.reload();
+      }
     },
     error: function(contactList, error) {
       // Execute any logic that should take place if the save fails.
@@ -115,6 +152,29 @@ function checkForExistingContact() {
 // List cities that have been uploaded to server
 function listCity() {
 
+  console.log("listing city");
+  var query = new Parse.Query("CitiesList");
+  query.find({
+    success: function(results) {
+
+      if (results.length >= 0) {
+
+        for (var i = 0; i < results.length; i++) {
+
+          console.log(results[i].get("city").toLowerCase());
+          add(results[i].get("city").toLowerCase());
+
+        }
+      }
+
+    },
+    error: function(error) {
+      alert("Error: " + error.code + " " + error.message);
+      return true;
+    }
+  });
+
+/*
   var query = new Parse.Query("ContactList");
   query.limit(querylimit);
   query.skip(skipNumber * querylimit);
@@ -131,7 +191,7 @@ function listCity() {
 
         }
 
-        if (results.length === 100) {
+        if (results.length === querylimit) {
           console.log("recall");
           skipNumber++;
           listCity();
@@ -147,8 +207,9 @@ function listCity() {
               add(sortedCity[i]);
             }
           }
-          alert("Data has been updated to the latest version")
+
           console.log(sortedCityTrun);
+          alert("Data has been updated to the latest version")
         }
       }
 
@@ -157,7 +218,7 @@ function listCity() {
       alert("Error: " + error.code + " " + error.message);
       return true;
     }
-  });
+  });*/
 
 }
 
