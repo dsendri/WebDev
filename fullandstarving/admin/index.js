@@ -99,6 +99,7 @@ function exportFunc() {
 
         }
 
+
         if (results.length === querylimit) {
           console.log("recall");
           // increment skip number for pagination
@@ -187,7 +188,7 @@ function uploadData() {
     contactList.set("cityClient", cityClient.value.toLowerCase());
     var citiesList = new CitiesList();
     citiesList.set("city", cityClient.value.toLowerCase());
-
+    citiesList.set("size", 1);
   } else {
 
     contactList.set("cityClient", dropDownButton.value.toLowerCase())
@@ -200,15 +201,39 @@ function uploadData() {
       // Execute any logic that should take place after the object is saved.
       alert('New object created with objectId: ' + contactList.id);
 
+      var query = new Parse.Query("CitiesList");
+
       if (dropDownButton.value === "Add city") {
 
-        var query = new Parse.Query("CitiesList");
         query.equalTo("city", cityClient.value.toLowerCase());
+
+      } else {
+
+        query.equalTo("city", dropDownButton.value.toLowerCase());
+
+      }
+
         query.find({
           success: function(results) {
             //alert("Successfully retrieved " + results.length + " records.");
             if (results.length > 0) {
-              alert("The city has been registered");
+
+              var tempLength = results[0].get("size")+1;
+              results[0].set("size",tempLength);
+              alert("The city has "+ tempLength + " data\nDon't go more than 6000 data!");
+              results[0].save(null, {
+                success: function(citiesList) {
+                  // Execute any logic that should take place after the object is saved.
+                  location.reload();
+                },
+                error: function(citiesList, error) {
+                  // Execute any logic that should take place if the save fails.
+                  // error is a Parse.Error with an error code and message.
+                  alert('Failed to create new city, with error code: ' + error.message);
+                }
+              });
+
+
             } else {
               alert("Uploading city data");
               citiesList.save(null, {
@@ -230,9 +255,6 @@ function uploadData() {
             return true;
           }
         });
-      } else {
-        location.reload();
-      }
     },
     error: function(contactList, error) {
       // Execute any logic that should take place if the save fails.
@@ -467,12 +489,13 @@ $(document).ready(function() {
           }
         });
       }
-    } else if (tempData[0][1].toLowerCase() === "city") {
+    } else if (tempData[0][1].toLowerCase() === "city" && tempData[0][2].toLowerCase() === "size") {
         console.log("uploading city");
 
         for (var i = 1; i < tempData.length; i++){
           var citiesListUpload = new CitiesList();
           citiesListUpload.set("city",tempData[i][1].toLowerCase());
+          citiesListUpload.set("size",parseInt(tempData[i][2]));
 
           citiesListUpload.save(null, {
             success: function(citiesListUpload) {
