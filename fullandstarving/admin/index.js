@@ -153,6 +153,7 @@ function setupButtonListener() {
 
   // Add listener to upload data
   submitButton.addEventListener("click", function() {
+    submitButton.disabled = "true";
     checkForExistingContact()
   })
 
