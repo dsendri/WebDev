@@ -73,7 +73,7 @@ function exportFunc() {
 
   var query = new Parse.Query("ContactList");
   query.limit(querylimit);
-
+  query.descending("createdAt");
   // Check which city was chosen for export
   if (cityChosenForExport.value.toLowerCase() !== "all cities") {
     query.equalTo("cityClient", cityChosenForExport.value.toLowerCase());
