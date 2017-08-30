@@ -84,7 +84,7 @@ function exportFunc() {
   query.find({
     success: function(results) {
 
-      if (results.length > 0) {
+      if (results.length >= 0) {
 
         for (var i = 0; i < results.length; i++) {
 
